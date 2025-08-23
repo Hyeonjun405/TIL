@@ -74,4 +74,4 @@
 | fmt        | 날짜/숫자 포맷, 국제화      | `<fmt:formatDate value="${date}" pattern="yyyy-MM-dd"/>`                             |
 | sql        | DB 접근 (실무에서는 잘 안씀) | `<sql:query var="result" dataSource="${ds}">SELECT * FROM users</sql:query>`         |
 | xml        | XML 처리             | `<x:out select="/book/title"/>`                                                      |
-| fn         | 문자열/컬렉션 함수         | `${fn:length(list)}`                                                                 |
+| fn         | 문자열/컬렉션 함수         | `${fn:length(list)}`|
