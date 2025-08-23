@@ -58,3 +58,20 @@
 | `config`      | `ServletConfig`       | JSP 서블릿 초기화 정보                   |
 | `pageContext` | `PageContext`         | JSP 페이지 전체 관리, 내장객체 접근 및 범위 관리   |
 | `exception`   | `Throwable`           | JSP 에러 페이지에서 예외 정보 제공            |
+
+## 3. JSTL
+### 1. JSTL (JSP Standard Tag Library)
+ - JSP에서 자바 코드를 직접 쓰지 않고도 반복, 조건, 포맷, XML 처리 등을 할 수 있도록 제공되는 표준 태그 라이브러리
+ - JSP 태그로 Java 로직을 대신하는 도구
+ - JSP 내 스크립틀릿(<% ... %>) 최소화 가능 → 유지보수성 ↑
+ - HTML과 Java 코드 분리 가능 → View 역할 명확
+ - 표준화되어 있어서 어떤 JSP 환경에서도 호환
+
+### 2. 주요 태그 라이브러리
+| 라이브러리      | 설명                 | 예시                                                                                   |
+| ---------- | ------------------ | ------------------------------------------------------------------------------------ |
+| core (`c`) | 조건, 반복, URL 처리     | `<c:if test="${user != null}">Hello</c:if>` `<c:forEach var="item" items="${list}">` |
+| fmt        | 날짜/숫자 포맷, 국제화      | `<fmt:formatDate value="${date}" pattern="yyyy-MM-dd"/>`                             |
+| sql        | DB 접근 (실무에서는 잘 안씀) | `<sql:query var="result" dataSource="${ds}">SELECT * FROM users</sql:query>`         |
+| xml        | XML 처리             | `<x:out select="/book/title"/>`                                                      |
+| fn         | 문자열/컬렉션 함수         | `${fn:length(list)}`                                                                 |
