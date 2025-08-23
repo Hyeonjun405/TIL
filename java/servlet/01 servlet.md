@@ -3,20 +3,36 @@
  - Java 기반 웹 애플리케이션에서 HTTP 요청을 받아 처리하고, 그 결과를 HTTP 응답으로 돌려주는 서버 측 컴포넌트
  - 브라우저 → 서버로 들어오는 요청을 자바 코드로 처리하게 해주는 역할
 
-### 2. Servlet 동작 흐름
- - 클라이언트 요청 (HTTP Request) : 브라우저가 URL 호출 → Tomcat 같은 WAS(Web Application Server)로 요청 도착
- - WAS가 요청을 해당 Servlet에게 전달 : URL 패턴에 따라 어떤 서블릿이 요청을 처리할지 매핑 (web.xml 또는 @WebServlet)
- - Servlet 객체의 doGet()/doPost() 실행 : 요청 방식에 따라 메소드가 실행되고 HttpServletRequest, HttpServletResponse 객체가 전달됨
- - 비즈니스 로직 처리 :  DB 조회, 계산 등 필요한 작업 진행
- - 응답 생성 후 클라이언트로 응답 전송 : HttpServletResponse를 이용해 HTML, JSON 등 클라이언트로 반환
-
-### 3. 주요개념
+### 2. 주요개념
 | 개념                    | 설명                                         |
 | --------------------- |--------------------------------------------|
 | HttpServletRequest    | 클라이언트 요청 정보 (파라미터, 헤더 등) 담고 있음             |
 | HttpServletResponse   | 서버 → 클라이언트로 보낼 응답 (컨텐츠타입, 상태코드, body 등) 다룸 |
 | web.xml / @WebServlet | 서블릿 URL 매핑 정보<br>실제 서블릿 클래스를 공개하지 않기 위해서 URL로 접근함.                       |
 | Lifecycle             | init() → service() → destroy() 순으로 동작      |
+
+### 3. Servlet 동작 흐름
+- 클라이언트 요청 수신
+    - 브라우저가 HTTP 요청을 보냄 (GET /hello HTTP/1.1)
+    - WAS(Tomcat 등)는 지정된 포트에서 TCP 소켓으로 요청 수신
+- HTTP 메시지 파싱 및 객체 생성
+    - WAS가 원시 HTTP 메시지를 파싱
+    - 요청 정보를 담은 HttpServletRequest, 응답을 담을 HttpServletResponse 객체 생성
+    - 필요 시 세션(HttpSession)과 애플리케이션 컨텍스트(ServletContext)도 연결
+- 서블릿 로딩 및 인스턴스화
+    - WAS는 요청 URL에 매핑된 서블릿 클래스를 확인
+    - 최초 요청이면 JVM이 클래스 로드, 메서드/필드 메모리 할당 후 서블릿 인스턴스 생성
+    - init() 메서드 호출로 초기화 수행
+- 요청 처리
+    - WAS가 생성한 request/response 객체를 서블릿 인스턴스의 service(request, response)에 전달
+    - service() 메서드에서 HTTP 메서드(GET/POST)에 맞는 doGet()/doPost() 호출
+    - JVM 안에서 서블릿 코드 실행 → request에서 파라미터 읽고, response에 결과 작성
+- 응답 반환
+    - 서블릿 실행 후 response 객체에 담긴 내용 기반으로 WAS가 HTTP 응답 메시지 생성
+    - TCP 소켓을 통해 브라우저로 응답 전송
+- 정리
+    - 요청이 끝나면 WAS가 request/response 객체 정리
+    - 서블릿 인스턴스는 JVM 메모리에 유지 → 다음 요청 재사용 가능
 
 ### 4. 라이프사이클
 ```
@@ -151,64 +167,3 @@ public class FirstServlet extends HttpServlet { // HttpServlet 확장
 
     }
  ```
-
-## 4. JSP
-### 1. JSP
- - JSP(Java Server Pages)는 HTML 안에 Java 코드를 삽입해 동적인 웹 페이지를 만드는 기술
- - 서블릿을 대신하거나 보완하기 위해 만들어짐
- - 서블릿은 순수 Java 코드로 화면 생성 → 유지보수 어려움
- - JSP는 HTML 중심 + 필요한 Java 코드 삽입 → 화면 작성 간편
-
-### 2. 흐름
- - 클라이언트 요청 → WAS가 JSP 호출
- - JSP → 서블릿으로 변환 () JSP 파일이 최초 요청 시 서블릿 클래스로 변환되고 컴파일 )
- - 서블릿 실행 ( HTML + JSP 코드가 포함된 response 생성 )
- - 결과를 HttpServletResponse에 기록 → 클라이언트 전송
-
-### 3. 패턴
-| 패턴        | 요청 흐름                                                                                                 | 역할                                     | 장점                                              | 단점                          |
-| --------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------- | --------------------------- |
-| 직접 접근     | 클라이언트 → JSP → WAS → JSP 실행 → 클라이언트                                                                    | JSP가 화면 생성 + 일부 로직 처리                  | 간단, 바로 화면 확인 가능                                 | 로직과 화면이 뒤섞임 → 유지보수 어려움      |
-| 서블릿 + JSP | 클라이언트 → WAS → 서블릿 → request.setAttribute() → RequestDispatcher → JSP → 클라이언트                          | 서블릿: 로직 처리 / JSP: 화면 출력                | 로직과 화면 분리 → 유지보수 용이                             | 서블릿마다 반복 코드 존재, 공통 처리 어려움   |
-| 스프링 MVC   | 클라이언트 → WAS → DispatcherServlet → Controller/Service Bean → Model 데이터 준비 → ViewResolver → JSP → 클라이언트 | Controller/Service: 로직 처리 / JSP: 화면 출력 | 로직/화면 완전 분리, 중앙 집중 처리, DI/Interceptor/AOP 활용 가능 | 초기 구조 이해 필요, 설정/DI 개념 학습 필요 |
-
-
-## 5. WAS - Serlvet - Spring
-### 1. 스프링 이전 구조 (기본 WAS + 서블릿)
-   - 흐름
-     1. 클라이언트 요청 → WAS(톰캣 등) 수신
-     2. WAS가 HttpServletRequest / HttpServletResponse 객체 생성
-     3. 요청 URL 매핑 → 웹 서블릿 선택
-     4. 웹 서블릿 실행
-       - 로직 처리 (DB 조회, 계산 등)
-       - JSP로 데이터 전달 필요 시 request.setAttribute()
-     5. RequestDispatcher 사용
-       - 서블릿 → JSP forward/include
-     6. JSP 실행 → 화면 생성 → response로 클라이언트 반환
-   - 포인트
-     - WAS는 입출구 + 객체 생성 + 서블릿 연결 정도만 수행
-     - 실제 로직/화면 처리는 서블릿/JSP가 담당
-     - Dispatcher 역할은 있었지만 단순 forward/include 수준
-### 2. 스프링 이후 구조 (WAS + DispatcherServlet + Bean)
-  - 흐름
-    1. 클라이언트 요청 → WAS 수신
-    2. WAS가 HttpServletRequest / HttpServletResponse 생성
-    3. WAS가 DispatcherServlet 호출 (모든 요청 집중)
-    4. DispatcherServlet 내부 처리
-      - HandlerMapping → Controller/Bean 호출
-      - 비즈니스 로직 수행 (Service/Repository)
-      - Model 데이터 준비
-      - ViewResolver → JSP/템플릿 선택
-    5. DispatcherServlet이 response 작성 → WAS → 클라이언트 반환
-  - 포인트
-    - WAS는 request/response 생성 + DispatcherServlet 호출 정도로 역할 최소화
-    - DispatcherServlet이 모든 요청/응답, Bean 호출, View 연결 중앙 관리
-    - 로직/뷰 분리, 공통 처리 통합, DI 지원 등 장점 확보
-### 3. 비교
-| 항목                  | 스프링 이전               | 스프링 이후                              |
-| ------------------- | -------------------- | ----------------------------------- |
-| request/response 생성 | WAS가 생성 → 개별 서블릿     | WAS가 생성 → DispatcherServlet에 통으로 전달 |
-| 요청 처리               | 서블릿이 직접              | DispatcherServlet → Controller/Bean |
-| JSP 연결              | RequestDispatcher 사용 | DispatcherServlet + ViewResolver    |
-| 공통 처리               | 서블릿마다 반복 구현          | Interceptor/AOP로 중앙 관리              |
-| WAS 역할              | 입출구 + 객체 생성 + 서블릿 호출 | 입출구 + DispatcherServlet 호출 (단순화)    |

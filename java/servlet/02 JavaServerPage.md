@@ -6,27 +6,33 @@
 - JSP 파일(.jsp)은 기본적으로 HTML 구조를 가지면서, 필요한 부분에만 Java 코드나 JSP 태그를 삽입해서 동적인 데이터를 표현함.
 
 ### 2. jsp 기본 흐름
- - 클라이언트 요청
-   - 사용자가 브라우저에서 http://localhost:8080/hello.jsp 같은 URL을 요청
-   - 이 요청은 웹 서버(Apache, Nginx 등) → WAS(Tomcat 등) 으로 전달됨
- - WAS가 JSP 요청 처리 준비
-   - WAS 내부의 서블릿 컨테이너가 JSP 요청을 감지
-   - JSP 파일이 이전에 변환된 적이 없다면, 변환 작업을 수행
- - JSP → 서블릿 소스 변환
-   - JSP 파일(hello.jsp)이 **서블릿 자바 소스 코드(hello_jsp.java)**로 변환됨
-   - 이 소스에는 JSP의 HTML은 out.write("...") 형태로, <%= ... %> 같은 자바 표현식은 자바 코드로 변환됨
- - 서블릿 클래스 생성 (컴파일)
-   - 변환된 hello_jsp.java 파일을 자바 컴파일러가 컴파일
-   - 결과물로 .class 파일 (hello_jsp.class) 생성됨
-   - 이 클래스는 HttpServlet을 상속하고, _jspService() 메서드 안에 JSP 코드가 들어감
- - 서블릿 실행
-   - 서블릿 컨테이너가 hello_jsp.class를 로딩해서 실행
-   - request와 response 객체를 전달받아 동작
-   - 결과로 HTML 문자열이 생성됨
+ - 클라이언트 요청 수신
+   - 브라우저가 HTTP 요청을 보냄 (GET /hello.jsp HTTP/1.1)
+   - WAS(Tomcat 등)는 지정된 포트에서 TCP 소켓으로 요청 수신
+ - HTTP 메시지 파싱 및 객체 생성
+   - WAS가 원시 HTTP 메시지를 파싱
+   - HttpServletRequest, HttpServletResponse 생성
+   - 필요 시 세션(HttpSession)과 애플리케이션 컨텍스트(ServletContext) 연결
+ - JSP → 서블릿 변환
+   - 요청 URL이 JSP라면 WAS가 해당 JSP 파일을 서블릿 클래스(.java)로 변환
+   - 변환된 서블릿 클래스가 JVM에서 로딩되고, 인스턴스 생성 후 init() 호출
+ - JSP 내장 객체 생성
+   - WAS가 JSP 전용 내장 객체 생성하여 서블릿 코드에 바인딩
+     - 요청/응답 관련: request, response
+     - 출력 관련: out (JspWriter)
+     - 세션/애플리케이션: session, application
+     - 페이지 관련: page, pageContext, config
+     - 예외 처리: exception
+ - 요청 처리
+   - WAS가 request/response 객체와 JSP 내장 객체를 서블릿 인스턴스의 service(request, response)에 전달
+   - JSP 변환 서블릿 코드 실행 → 내부 자바 코드 수행 → HTML 문자열 생성 → out 객체로 출력
  - 응답 반환
-   - 실행 결과(HTML)가 WAS를 거쳐 웹 서버 → 클라이언트 브라우저로 전송됨
-   - 브라우저는 HTML을 렌더링해서 화면에 보여줌
-
+   - JSP 실행 결과(out에 기록된 HTML)를 WAS가 HTTP 응답 메시지로 변환
+   - TCP 소켓을 통해 브라우저로 전송
+ - 정리
+   - 요청이 끝나면 WAS가 request/response 객체 정리
+   - JSP 서블릿 인스턴스는 JVM 메모리에 유지 → 다음 요청 재사용 가능
+   
 ### 3. JSP → 서블릿 소스 변환
 - hello.jsp
 ```
@@ -52,11 +58,8 @@
     }
 }
 ```
-### 4. 두번째 수행
-- JSP 파일이 한 번 서블릿/클래스로 변환되면, 다음 요청부터는 기존 서블릿 클래스를 재사용
-- JSP 파일이 수정되면 WAS가 다시 변환/컴파일 과정을 거쳐 새로운 클래스 로딩
 
-### 5. JSP - DB
+### 4. JSP - DB
 ```
 <%
 // JSP 안에서 DB 연결 가능하기는 함. 
@@ -87,7 +90,6 @@ ResultSet rs = stmt.executeQuery("SELECT name FROM users");
 | 최신 기술 호환성 | REST API, 프론트엔드 프레임워크와 연동 어려움     |
 | 성능        | 최초 요청 시 컴파일 필요, 반복문 과다 시 서버 부하    |
 
-
 ## 2. jsp와 서블릿
 ### 1. 서블릿과 jsp
 | 구분        | 서블릿(Servlet)                               | JSP(JavaServer Pages)        |
@@ -108,36 +110,11 @@ ResultSet rs = stmt.executeQuery("SELECT name FROM users");
 | 종료    | `destroy()`                             | `jspDestroy()`                             |
 | 개발 관점 | 비즈니스 로직 중심                              | 화면(View) 중심                                |
 
-## 3. jsp와 MVC
+## 3. MVC
 ### 1. MVC 패턴
  - M(Model): 비즈니스 로직, 데이터 처리, DB 접근
  - V(View): 사용자에게 보여줄 화면
  - C(Controller): 요청을 받아서 처리 → 모델 호출 → 뷰에 전달
-
-### 2. 흐름
- - 클라이언트가 GET /users 요청
- - Controller(서블릿)가 요청 받음 → DB에서 사용자 목록 조회
- - Model(Service/DAO)가 데이터 처리
- - JSP(View)에 데이터를 전달 → 화면 렌더링(화면 출력에 최적화되어 있고, HTML 구조와 동적 데이터 출력만 처리)
- - 클라이언트에게 HTML 응답
-
-### 3. 변화
-| 과거 JSP                  | MVC + JSP                             |
-| ----------------------- | ------------------------------------- |
-| HTML + 자바 코드 자유롭게 혼합 가능 | HTML + EL/JSTL 정도만 사용                 |
-| 화면 + 로직 + DB 모두 처리 가능   | 화면 출력만 담당, 로직은 Controller/Service/DAO |
-| 빠른 화면 구현 가능             | MVC 원칙 준수로 유지보수성 ↑, 단 JSP 강점은 거의 사용 X |
-
-
-## 4. MVC - Spring
-### 1. Spring - MVC
-- MVC 패턴
-   - 소프트웨어 설계 원칙 중 하나
-   - 1979년 Smalltalk에서 처음 등장 → 화면(View), 로직(Controller), 데이터(Model) 분리
-   - 자바 이전에도 존재했음 → 설계 패턴이지 특정 프레임워크가 아님
-- 스프링(Spring)
-   - 2002년경 Rod Johnson이 만든 자바 기반 애플리케이션 프레임워크
-   - Spring Framework 안에 Spring MVC 모듈이 있음 → 자바에서 MVC 패턴을 쉽게 구현하도록 지원
 
 ### 2. MVC 강점
 | 강점       | 설명                                 | 예시/효과                          |
@@ -148,7 +125,15 @@ ResultSet rs = stmt.executeQuery("SELECT name FROM users");
 | 테스트 용이   | Model과 Controller를 독립적으로 단위 테스트 가능 | 화면 출력(View) 테스트 부담 최소화         |
 | 규모 확장 용이 | 기능 증가 시 역할별 책임 분리되어 관리 편리          | 팀 단위 개발 시 작업 분리 가능, 스파게티 코드 방지 |
 
-### 3. 변화
+## 4. Servlet / JSP / MVC
+### 1. Servlet / JSP / MVC
+| 구분        | Servlet만 사용              | JSP 사용                 | MVC + JSP                             |
+| --------- | ------------------------ | ---------------------- | ------------------------------------- |
+| 화면과 로직 혼합 | HTML + PrintWriter 코드 혼합 | HTML + Java 코드 혼합 가능   | HTML + EL/JSTL 정도만 사용                 |
+| 역할        | 로직 + 화면 모두 서블릿에서 처리      | 화면 + 로직 + DB 모두 처리 가능  | 화면 출력만 담당, 로직은 Controller/Service/DAO |
+| 장점/특징     | 빠른 개발 가능, 단 유지보수 어려움     | 빠른 화면 구현 가능, JSP 문법 편리 | MVC 원칙 준수로 유지보수성 ↑, JSP 강점은 거의 사용 X   |
+
+### 2. 변화
  - 과거 JSP 강점
    - JSP는 HTML 안에 자바 코드를 삽입해서 동적 페이지를 만들 수 있었음
    - 내부적으로 서블릿으로 자동 변환되므로, 요청 처리와 화면 렌더링을 동시에 처리 가능
@@ -164,8 +149,8 @@ ResultSet rs = stmt.executeQuery("SELECT name FROM users");
    - EL, JSTL, Thymeleaf 같은 템플릿 기반 View 기술이 등장하면서 JSP 스크립틀릿을 거의 안 쓰게됨.
    - 그래서 JSP를 굳이 유지할 이유가 점점 사라진 것
 
-## 5. JSP - MVC - Spring
-### 1. JSP + WAS (MVC 미적용, 레거시)
+### 3. 흐름
+#### 1. JSP + WAS (MVC 미적용, 레거시)
 ```
 클라이언트 요청 → WAS 수신
     ↓
@@ -180,7 +165,7 @@ WAS가 JSP → 서블릿(.java)로 변환 (최초 요청 시)
 WAS → 클라이언트 응답
 ```
 
-### 2. JSP + WAS (MVC 적용, 스프링 미사용)
+#### 2. JSP + WAS (MVC 적용, 스프링 미사용)
 ```
 클라이언트 요청 → WAS 수신
     ↓
@@ -199,7 +184,7 @@ JSP 실행 → HTML 생성
 WAS → 클라이언트 응답
 ```
 
-### 3. JSP + WAS (MVC 적용, 스프링 사용)
+#### 3. JSP + WAS (MVC 적용, 스프링 사용)
 ```
 클라이언트 요청 → WAS 수신
     ↓
@@ -217,11 +202,3 @@ JSP 존재 여부 확인 및 실행 (서블릿 클래스 재사용)
     ↓
 HTML 생성 → DispatcherServlet → WAS → 클라이언트 응답
 ```
-
-### 4. Controller - JSP - WAS
-| 케이스           | Controller            | JSP   | WAS                 |
-| ------------- | --------------------- | ----- | ------------------- |
-| 레거시          | 없음                    | 화면 + 로직 | 요청 수신, JSP 실행       |
-| MVC 적용, 스프링X | 직접 만든 Servlet         | 화면 출력 | 요청 수신, JSP 클래스 실행   |
-| MVC 적용, 스프링O | DispatcherServlet이 호출 | 화면 출력 | 요청 수신, 서블릿 관리, JSP 실행 |
-
