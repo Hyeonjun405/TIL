@@ -1,28 +1,65 @@
-## 1. DBCP
-### 1. DBCP (Database Connection Pool)
+## 1. DBCP / 커넥션풀 / DataSource
+| 구분                      | 개념                        | 역할                            | 특징 / 예시                                    |
+| ----------------------- | ------------------------- | ----------------------------- |--------------------------------------------|
+| 커넥션 풀 (Connection Pool) | DB 연결을 미리 만들어 풀에 보관       | 필요할 때 Connection 빌려주기, 성능 향상  | 개념(방식에 대한 설명), 구현 라이브러리와는 별개            |
+| DBCP                    | Apache에서 제공하는 커넥션 풀 라이브러리 | 커넥션 풀 구현, DataSource 인터페이스 구현 | getConnection() 호출 시 풀에서 Connection 제공     |
+| DataSource              | JDBC 표준 인터페이스             | DB Connection을 제공하는 추상화 객체    | 구현체에 따라 커넥션 풀 사용 가능, 단순 새 Connection 생성 가능 |
+
+### 1. 커넥션풀(Connection Pool)
+#### 1. 커넥션풀 
+ - DB 연결(Connection)을 미리 생성하여 풀(Pool)에 보관하고, 애플리케이션 요청 시 필요할 때 빌려 쓰는 구조
+ - 사용 후 반환하면 다시 풀에서 재사용 가능
+ - 즉, DB Connection의 생성과 폐기 비용을 줄이고, 효율적인 재사용을 지원하는 관리 시스템
+
+#### 2. 역할 / 주요 기능
+ - 연결 재사용: 매번 새 Connection을 생성하지 않고 미리 만들어 둔 Connection을 사용
+ - 동시성 처리: 다수 요청이 동시에 DB 접근할 때 Connection 제공
+ - 자원 관리: Connection을 효율적으로 관리하여 DB 부하를 줄임
+
+#### 3. 필요한 이유
+| 이유      | 설명                                    |
+| ------- | ------------------------------------- |
+| 성능 향상   | 매번 새 Connection 생성 비용 절감, 요청 처리 속도 증가 |
+| 동시성 처리  | 여러 요청이 동시에 DB 접근할 때 풀에서 Connection 제공 |
+| 자원 관리   | Connection 반환과 재사용 자동화 → 누수 방지        |
+| 트랜잭션 관리 | 프레임워크와 연계해 트랜잭션 처리 용이                 |
+| 환경 독립성  | DB 연결 정보를 코드가 아닌 설정에서 관리 가능           |
+
+
+### 2. DBCP
+#### 1. DBCP (Database Connection Pool)
  - Apache Commons 프로젝트에서 제공하는 커넥션 풀 라이브러리
  - 톰캣은 내부적으로 commons-dbcp와 commons-pool을 기반으로 JNDI DataSource를 구현함
  - 그래서 server.xml이나 context.xml에 <Resource> 태그로 설정하면 DBCP 풀을 자동으로 사용하게 됨.
 
-### 2. DBCP가 필요한 이유
- - JDBC에서 매번 DriverManager.getConnection() 호출 → TCP 연결 + 인증 = 매우 무거움
- - 요청 많아지면 DB, 애플리케이션 둘 다 병목 발생
- - 커넥션 풀을 쓰면
-   - 미리 생성된 커넥션을 재사용
-   - 성능 향상 (Latency ↓)
-   - 리소스 효율적 사용 (DB 커넥션 개수 제한 관리 가능)
-
-### 3. 동작구조
+#### 2. 동작구조
  - 애플리케이션 시작 시 DBCP가 DB 커넥션 N개 생성
  - 웹 요청이 들어옴 → 풀에서 커넥션 빌려옴
  - 쿼리 실행
  - close() 호출 → 실제 닫는 게 아니라 풀에 반환
  - 풀은 Idle(유휴) / Active(사용 중) 상태의 커넥션을 관리
 
-### 4. 핵심 특징
+#### 3. 핵심 특징
  - 성능 최적화: Connection 객체 생성/종료 비용 절약
  - 리소스 관리: DB 최대 동시 접속 수를 제어 가능
  - 안정성: 풀에서 커넥션이 터지면 자동으로 복구, 재연결 가능
+
+### 3. DataSource
+#### 1. 정의
+ - javax.sql.DataSource는 DB Connection을 제공하기 위한 표준 인터페이스
+ - DB 연결(Connection)을 직접 만들고 관리하는 일을 대신해주는 역할
+ - 구현체(Implementation)에 따라 동작 방식이 달라짐
+ - JDBC에서 DriverManager.getConnection() 대신 사용하는 표준 방식
+
+#### 2. 구현 방식에 따른 예시
+ - 커넥션 풀 기반 구현
+   - Apache DBCP, HikariCP 같은 라이브러리가 DataSource를 구현
+   - 내부적으로 미리 만들어둔 Connection 객체를 풀에 넣고, getConnection() 호출 시 풀에서 Connection 빌려줌
+   - 장점: 성능 향상, 재사용, 트랜잭션 연동 가능
+ - 직접 연결 기반 구현
+   - Spring DriverManagerDataSource 같은 구현체는 getConnection() 호출할 때마다 새 Connection 생성
+   - 장점: 단순, 테스트 용이
+   - 단점: 매번 새 Connection 생성 → 성능 낮음
 
 ## 2. 톰캣 대신 DBCP
 ### 1. 톰캣이 없는 경우 (순수 Java 애플리케이션)
