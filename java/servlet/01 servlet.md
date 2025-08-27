@@ -53,8 +53,17 @@
    - WAS가 종료되거나 서블릿이 언로드 될 때 단 한번 호출
    - 리소스 반납, 연결 종료 같은 정리(clean-up) 작업 수행
 
-## 2. Request / Response
-### 1. HttpServletRequest
+## 2. Request / Response 메소드 및 객체
+### 1. 서블릿 별 http method
+ ```
+ protected void doGet(HttpServletRequest request, HttpServletResponse response) { ... }
+ protected void doPost(HttpServletRequest request, HttpServletResponse response) { ... }
+ protected void doPut(HttpServletRequest request, HttpServletResponse response) { ... }
+ protected void doDelete(HttpServletRequest request, HttpServletResponse response) { ... }
+ ```
+- WebServlet으로 요청온 http method에 따라서 get/post/put/delete 등으로 각기 분류됨
+
+### 2. HttpServletRequest 객체
  - HttpServletRequest 는 서블릿 간, JSP와 같은 서버 사이에서 데이터를 전달하는 용도
  - request 속성은 같은 요청 내에서만 유효
  - 메서드 종류
@@ -74,7 +83,7 @@
 | `getReader()`                     | BufferedReader          | 요청 Body 문자 읽기 (JSON 등)   |
 | `getInputStream()`                | ServletInputStream      | 요청 Body 바이트 읽기           |
 
-### 2. HttpServletRequest
+### 3. HttpServletRequest 객체
 | 메서드                                    | 설명                  | 용도                        |
 | -------------------------------------- | ------------------- | ------------------------- |
 | `setContentType(String type)`          | Content-Type 지정     | 클라이언트가 데이터를 올바르게 해석하도록    |
@@ -87,8 +96,24 @@
 | `getOutputStream()`                    | ServletOutputStream | 바이너리 응답 출력 (파일, 이미지 등)    |
 | `addCookie(Cookie cookie)`             | 쿠키 추가               | Set-Cookie 헤더 전송          |
 
-## 3. Request / Response 처리
-### 1. Servelt으로 http 응답
+
+## 3.Servlet에서 응답(Response) 처리 방식
+| 방식          | 메서드                                                  | 동작                            | 특징               |
+| ----------- | ---------------------------------------------------- | ----------------------------- | ---------------- |
+| 직접 출력       | `response.getWriter()`, `response.getOutputStream()` | 응답 바디에 직접 작성                  | API, 파일 다운로드     |
+| 내부 위임       | `RequestDispatcher.forward()`                        | 같은 서버 내 다른 JSP/Servlet이 응답 생성 | MVC 패턴           |
+| 클라이언트 리다이렉트 | `response.sendRedirect()`                            | 브라우저가 새로운 요청 전송               | URL 변경, 요청 새로 시작 |
+
+
+### 1. 직접 응답 작성 (스트림 이용)
+#### 1. response 객체 이용
+ - response.getWriter() → PrintWriter로 HTML 같은 텍스트를 직접 작성
+ - response.getOutputStream() → 이미지/파일 같은 바이너리 데이터를 직접 작성
+ - 특징
+    - 응답 바디를 개발자가 직접 생성
+    - 간단한 응답(“Hello World”)은 편하지만, 화면이 커지면 유지보수 어려움
+    - 주로 API 응답(JSON/XML)이나 파일 다운로드 같은 경우 사용
+#### 2. 예시 
 ```
 @WebServlet("/hello") // URL 패턴 설정
 public class FirstServlet extends HttpServlet { // HttpServlet 확장
@@ -106,15 +131,68 @@ public class FirstServlet extends HttpServlet { // HttpServlet 확장
     }
 ```
 
-### 2. http method
- ```
- protected void doGet(HttpServletRequest request, HttpServletResponse response) { ... }
- protected void doPost(HttpServletRequest request, HttpServletResponse response) { ... }
- protected void doPut(HttpServletRequest request, HttpServletResponse response) { ... }
- protected void doDelete(HttpServletRequest request, HttpServletResponse response) { ... }
- ```
- - WebServlet으로 요청온 http method에 따라서 get/post/put/delete 등으로 각기 분류됨
- 
+### 2. 서부 내부 이용
+#### 1. RequestDispatcher 객체 
+ - RequestDispatcher.forward(request, response)
+ - 다른 JSP/Servlet이 대신 응답을 만들어줌
+ - 특징
+    - 비즈니스 로직(Servlet)과 뷰(JSP)를 분리 가능
+    - MVC 패턴에서 흔히 사용됨
+    - forward된 대상이 최종적으로 response에 쓰기 때문에, 원래 Servlet이 직접 출력할 필요 없음
+#### 2. 예시
+```
+@Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+throws ServletException, IOException {
+
+        String id = request.getParameter("id");
+        String pw = request.getParameter("pw");
+
+        
+        if ("admin".equals(id) && "1234".equals(pw)) {
+            // 로그인 성공 → main.jsp로 서버 내부 위임    
+            
+            //**서버 안에서 "xxx.html"이라는 리소스를 실행할 수 있는 전달자(RequestDispatcher 객체)**
+            RequestDispatcher dispatcher = request.getRequestDispatcher("main.jsp");
+            
+            //서블릿에서 쓰던 request, response 객체 그대로 다음 리소스(JSP, HTML, 또 다른 서블릿 등)한테 전달됨.
+            dispatcher.forward(request, response);
+        } else {
+            // 로그인 실패 → login.jsp로 다시 위임
+            RequestDispatcher dispatcher = request.getRequestDispatcher("login.jsp");
+            dispatcher.forward(request, response);
+        }
+    }
+```
+
+### 3. 클라이언트 리다이렉트
+#### 1. redirect
+ - response.sendRedirect("url")
+ - 브라우저에 “다른 URL로 다시 요청하라”는 HTTP 302 응답을 보냄
+ - 특징
+   - 브라우저 주소창이 바뀜
+   - 새로운 요청이기 때문에 request에 담긴 데이터는 초기화됨
+#### 2. 예시
+```
+@WebServlet("/redirectExample")
+public class RedirectServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        // 로그인 성공 시 메인 페이지로 리다이렉트
+        resp.sendRedirect("main.jsp");
+    }
+}
+```
+
+#### 3. Forward - Redirect 
+| 상황                | Forward | Redirect |
+| ----------------- | ------- | -------- |
+| 브라우저 URL 바꾸고 싶을 때 | X       | O        |
+| POST-재전송 방지(PRG)  | X       | O        |
+| 외부 서버 이동          | X       | O        |
+| 서버 내부 요청 위임       | O       | X        |
+
+
 ### 3. Content-Type
 #### 1. 요청구분
  - 요청 방향에 따라서 Content-Type의 역할과 Servlet에서 가지는 의미가 달라짐. 
