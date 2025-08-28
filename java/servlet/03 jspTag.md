@@ -75,3 +75,15 @@
 | sql        | DB 접근 (실무에서는 잘 안씀) | `<sql:query var="result" dataSource="${ds}">SELECT * FROM users</sql:query>`         |
 | xml        | XML 처리             | `<x:out select="/book/title"/>`                                                      |
 | fn         | 문자열/컬렉션 함수         | `${fn:length(list)}`|
+
+## 4. note
+### 1. JSP - tomcat 버전
+| JSTL 버전 | 패키지                         | URI                                                                    | 톰캣 호환            |
+| ------- | --------------------------- | ---------------------------------------------------------------------- | ---------------- |
+| 1.1.x   | javax.servlet.jsp.jstl.\*   | [http://java.sun.com/jsp/jstl/core](http://java.sun.com/jsp/jstl/core) | Tomcat 7 이하      |
+| 1.2     | javax.servlet.jsp.jstl.\*   | [http://java.sun.com/jsp/jstl/core](http://java.sun.com/jsp/jstl/core) | Tomcat 8\~9 (주의) |
+| 3.0     | jakarta.servlet.jsp.jstl.\* | [http://jakarta.ee/jstl/core](http://jakarta.ee/jstl/core)             | Tomcat 10\~11    |
+  ```
+  //jsp파일 가장 상단 URL 설정, 버전이 다르면 인식이 안됨.
+  <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+  ```
