@@ -1,6 +1,5 @@
 ## 1. JSP
-### 1. JSP
-- JSP(JavaServer Pages)
+### 1. JSP(JavaServer Pages)
 - HTML 코드 안에 Java 코드를 삽입해 동적인 웹 페이지를 생성할 수 있게 해주는 자바 기반 기술
 - JSP는 실행되기 전에 서블릿 코드로 변환되고, 이후 컴파일되어 동작함.
 - JSP 파일(.jsp)은 기본적으로 HTML 구조를 가지면서, 필요한 부분에만 Java 코드나 JSP 태그를 삽입해서 동적인 데이터를 표현함.
@@ -112,6 +111,7 @@ ResultSet rs = stmt.executeQuery("SELECT name FROM users");
 
 ## 3. MVC
 ### 1. MVC 패턴
+ - ** 애플리케이션을 Model, View, Controller 세 부분으로 분리하여 각 컴포넌트의 역할을 명확히 하고, 관심사를 분리(Separation of Concerns)하는 소프트웨어 아키텍처 패턴 **
  - M(Model): 비즈니스 로직, 데이터 처리, DB 접근
  - V(View): 사용자에게 보여줄 화면
  - C(Controller): 요청을 받아서 처리 → 모델 호출 → 뷰에 전달

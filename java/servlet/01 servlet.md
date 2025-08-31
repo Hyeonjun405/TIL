@@ -1,5 +1,6 @@
 ## 1. Servlet
 ### 1. Servlet
+ - **HTTP 요청-응답을 처리하기 위해 서버 사이드 자바 기반 서버 컴포넌트**
  - Java 기반 웹 애플리케이션에서 HTTP 요청을 받아 처리하고, 그 결과를 HTTP 응답으로 돌려주는 서버 측 컴포넌트
  - 브라우저 → 서버로 들어오는 요청을 자바 코드로 처리하게 해주는 역할
 
@@ -35,6 +36,7 @@
     - 서블릿 인스턴스는 JVM 메모리에 유지 → 다음 요청 재사용 가능
 
 ### 4. 라이프사이클
+ **객체나 컴포넌트가 생성되어 소멸될 때까지 거치는 단계와 상태 변화 과정**
 ```
  클래스 로딩 → 인스턴스 생성 → init() → service() → destroy()
 ```
@@ -131,7 +133,7 @@ public class FirstServlet extends HttpServlet { // HttpServlet 확장
     }
 ```
 
-### 2. 서부 내부 이용
+### 2. 서버 내부 이용
 #### 1. RequestDispatcher 객체 
  - RequestDispatcher.forward(request, response)
  - 다른 JSP/Servlet이 대신 응답을 만들어줌
@@ -172,6 +174,7 @@ throws ServletException, IOException {
  - 특징
    - 브라우저 주소창이 바뀜
    - 새로운 요청이기 때문에 request에 담긴 데이터는 초기화됨
+
 #### 2. 예시
 ```
 @WebServlet("/redirectExample")
@@ -194,6 +197,7 @@ public class RedirectServlet extends HttpServlet {
 
 
 ### 3. Content-Type
+**HTTP 메시지에서 전송되는 데이터의 형식(MIME 타입)을 나타내는 헤더(Header)**
 #### 1. 요청구분
  - 요청 방향에 따라서 Content-Type의 역할과 Servlet에서 가지는 의미가 달라짐. 
   
