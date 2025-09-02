@@ -130,3 +130,12 @@ public class FrontControllerServlet extends HttpServlet {
  - 테스트와 Mock 어려움 ( ※ Mock 객체 실제 객체를 대신해서 동작을 흉내 내는(fake) 객체 )
  - 서블릿 단위로만 나누면, 액션 단위 테스트가 어렵고, Mock 객체를 주입하기 힘듬. 
  - 팩토리 + 액션 구조면, 서블릿과 액션을 분리해서 액션만 단위 테스트 가능
+
+## 5.note
+### 1. MVC 기본 흐름 (클라이언트 → 컨트롤러 → 액션 → 서비스/DAO)
+  - 클라이언트가 form이나 요청을 보냄
+  - 컨트롤러(FrontController)가 요청 파라미터를 꺼냄
+  - 컨트롤러에서 DTO/VO 객체를 생성하고, 파라미터 값들을 채움
+  - 그 DTO/VO를 Action(또는 Service)에 넘겨줌
+  - Action은 DTO/VO를 이용해 비즈니스 로직 실행 (DAO 호출, DB 작업 등)
+  - 결과를 또 다른 DTO/VO에 담아서 request/session에 실어 JSP(View)에 전달
