@@ -19,6 +19,10 @@ Thread2: count = count + 1;
 - Thread1과 Thread2가 동시에 실행되면, count가 1만 증가하거나 2가 되어야 하지만
 - 메모리 접근 타이밍에 따라 1만 증가하는 Race condition이 발생할 수 있음
 
+### 4. 해결방법
+ - 동기화(synchronization): synchronized, mutex, lock 등을 사용
+ - 원자적 연산(atomic operation): AtomicInteger 같은 클래스 사용
+ - 불변 객체 사용(immutable objects): 상태 변경을 막아 Race condition 방지
 
 ## 2. note
 ### 1. 2025.09.03. SFTP 연동 문제 
