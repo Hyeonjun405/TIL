@@ -28,12 +28,29 @@
 ### 2. 스택 영역(Stack Area)
  - 역할: 메서드 호출 시 지역 변수, 매개변수, 참조값 저장
  - 특징: LIFO 구조, 메서드 호출이 끝나면 자동 해제
- - 예시:
+ - 예시_1
    ```
    void foo() {
      int x = 10;   // 스택에 저장
      Object obj = new Object();  // obj 참조값만 스택
    }
+   ```
+ - 예시_2
+   ```
+   public static void main(String[] args) { -> main 스택 프레임 push
+    int x = 10;
+    foo(x); → foo 스택 프레임 push
+   }
+   
+   static void foo(int n) {
+       int y = n + 1;
+       bar(y); → bar 스택 프레임 생성
+   }
+   
+   static void bar(int m) {
+       System.out.println(m);
+   }
+   // 각기 끝나고 종결, 일반적으로 생성 역순으로 처리됨. (LIFO)
    ```
 
 ### 3. 힙 영역(Heap Area)
