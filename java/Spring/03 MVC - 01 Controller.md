@@ -104,7 +104,7 @@ public class HelloController {
 | `@DeleteMapping`  | DELETE 요청을 처리                     |
 | `@PatchMapping`   | PATCH 요청을 처리                      |
 
-#### 3. 요청 데이터
+#### 3. 요청 데이터 => 03 MVC - 02 Reqeust&Response
 | 애노테이션             | 역할                         |
 | ----------------- | -------------------------- |
 | `@RequestParam`   | 쿼리 파라미터 값 매핑               |
