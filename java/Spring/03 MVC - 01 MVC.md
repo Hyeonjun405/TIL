@@ -72,7 +72,6 @@
  - 컨트롤러 실행 후 반환된 모델과 뷰 정보를 받아 뷰로 전달
  - 예외 처리, 인터셉터, 메시지 변환 등 여러 보조 기능과 연계
 
-
 ### 3. HandlerMapping
 #### 1. HandlerMapping
  - DispatcherServlet이 요청을 받으면 등록된 HandlerMapping 빈들을 순서대로 탐색
@@ -95,3 +94,47 @@
  - 대부분의 경우 HandlerMapping이 반환한 HandlerMethod는 Adapter가 처리 가능
  - 그러나 스프링 MVC 설계상 → “실행 불가 타입”이 나올 가능성을 고려하여 Adapter가 supports()로 검증
  - 이 구조 덕분에 다양한 핸들러 타입 지원 + 확장성 확보 가능
+
+### 5. ViewReslover
+#### 1. ViewReslover
+ - 컨트롤러가 문자열(String) 뷰 이름이나 ModelAndView 객체를 리턴했을 때 작동
+ - ViewResolver는 "화면(View)"을 찾아주는 역할
+
+#### 2. 흐름
+ - 컨트롤러 실행 → 리턴값이 "home" 같은 뷰 이름이라고 하자
+ - DispatcherServlet이 등록된 ViewResolver 목록을 순서대로 조회
+ - 각 ViewResolver는
+   - canResolve(viewName) 느낌으로 "내가 이 뷰 이름 처리 가능해?" 확인
+   - 가능하면 View 객체 리턴
+ - DispatcherServlet이 선택된 View의 render(model, request, response) 실행 → 최종적으로 JSP, Thymeleaf, FreeMarker 같은 실제 화면이 그려짐
+
+#### 3. 여러개의 ViewResolver
+ - DispatcherServlet은 컨트롤러에서 반환한 "뷰 이름"을 가지고 있음.
+ - 등록된 ViewResolver들을 순서대로 호출해서 "뷰 이름 → View 객체"로 바꿀 수 있는지 확인함.
+ - 처음으로 성공한 ViewResolver가 채택되고, 나머지는 무시됨.
+ - 동시에 두 개 두는 건 가능하지만, 보통은 프로젝트에서 하나의 템플릿 엔진만 명확히 선택하는 게 유지보수에 좋음
+
+### 6. MessageConverter
+#### 1. MessageConverter
+ - 스프링 MVC에서 HTTP 요청과 응답의 body(본문)를 객체와 변환해주는 컴포넌트
+ - JSON/XML/텍스트 같은 원시 HTTP 데이터를 자바 객체와 연결해주는 브릿지 역할.
+
+#### 2. 동작원리
+- DispatcherServlet이 요청을 받음
+- RequestMappingHandlerAdapter가 컨트롤러 호출 준비
+- @RequestBody 파라미터 → 메시지 컨버터 목록을 돌면서 canRead 검사
+  - Content-Type 헤더 확인 (예: application/json)
+  - 처리 가능한 컨버터 선택 후 body 읽어 자바 객체 생성
+- 컨트롤러 리턴 시 → 메시지 컨버터 목록을 돌면서 canWrite 검사
+  - Accept 헤더 확인 (예: application/json)
+  - 처리 가능한 컨버터 선택 후 객체를 응답 body로 직렬화
+
+#### 3. MessageConverter 종류
+| 컨버터 클래스                              | 지원 형식                             | 설명                            |
+| ------------------------------------ | --------------------------------- | ----------------------------- |
+| MappingJackson2HttpMessageConverter  | JSON                              | Jackson 라이브러리 기반 JSON ↔ 객체 변환 |
+| GsonHttpMessageConverter             | JSON                              | Gson 라이브러리 기반 JSON ↔ 객체 변환    |
+| Jaxb2RootElementHttpMessageConverter | XML                               | JAXB 기반 XML ↔ 객체 변환           |
+| StringHttpMessageConverter           | text/plain                        | 문자열 ↔ 객체 변환                   |
+| FormHttpMessageConverter             | application/x-www-form-urlencoded | HTML form 데이터 ↔ 객체 변환         |
+| ByteArrayHttpMessageConverter        | byte\[]                           | 바이너리 데이터 처리 (파일, 이미지 등)       |
