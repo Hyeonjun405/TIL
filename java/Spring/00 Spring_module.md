@@ -34,3 +34,12 @@
 | 배치 작업 / 스케줄러      | 불필요     | Spring Batch, @Scheduled                     | 대용량 데이터 처리, 주기적 반복 작업             |
 | 메시징 / 이벤트 처리      | 불필요     | Spring Messaging, RabbitMQ, Kafka, WebSocket | 실시간 이벤트 처리, 메시지 브로커 연동            |
 | 순수 애플리케이션 로직      | 불필요     | Spring Core (DI/IoC)                         | 객체 관리, 의존성 주입, 비즈니스 로직 수행         |
+
+## 4. 스프링부트 의존성 / 모듈
+| 선택 상태                                 | 포함 모듈/스타터                                                    | 주요 기능/설명                                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| 아무것도 선택 안함                        | spring-core, spring-context, spring-beans, spring-expression | IoC/DI, Bean 관리, 컨텍스트 관리, SpEL 등 코어 기능만 가능. MVC, AOP, DB, Validation 등 없음                                            |
+| 웹(starter-web) 선택                 | spring-web, spring-webmvc, Jackson, 톰캣 내장                    | DispatcherServlet, HandlerMapping, HandlerAdapter, 메시지 컨버터, REST/JSON 처리, MVC 구조 제공. JSP는 별도 설정 필요, Thymeleaf는 별도 선택 |
+| DB(starter-data-jpa) 선택           | spring-data-jpa, spring-orm, hibernate, spring-jdbc          | JPA Repository, Entity 매핑, JDBC Template, ORM 지원. DataSource 자동 설정 포함                                                |
+| AOP(starter-aop) 선택               | spring-aop, aspectj                                          | @Aspect, @EnableAspectJAutoProxy 지원. 트랜잭션, 로깅, 모니터링 등 가능                                                             |
+| Validation(starter-validation) 선택 | javax.validation / jakarta.validation                        | @Valid, @Validated, @NotNull, @Size 등 JSR-303/380 표준 검증 지원                                                           |
