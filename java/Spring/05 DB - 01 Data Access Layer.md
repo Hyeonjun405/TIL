@@ -1,30 +1,41 @@
-## 1. JAVA - DB 전체 흐름
-### 1. JDBC 등장 (1997, Java 1.1)
+## 1. Data Access Layer
+ ``애플리케이션에서 DB와 직접 데이터를 주고받는 모든 기술을 통칭``
+
+### 1. Data Access Layer 종류
+| 범주          | 예시                                  |
+| ----------- | ----------------------------------- |
+| SQL Mapper  | MyBatis, iBatis 등                   |
+| ORM         | Hibernate, EclipseLink, JPA 등       |
+| 단순 JDBC     | JdbcTemplate, 순수 JDBC               |
+| Spring Data | Spring Data JPA, Spring Data JDBC 등 |
+
+### 2. Data Access Layer흐름
+#### 1. JDBC 등장 (1997, Java 1.1)
  - 자바에서 DB와 직접 연결하기 위한 표준 API 등장
  - 특징: SQL 직접 작성, Connection/PreparedStatement/ResultSet 관리 모두 수동
  - 장점: 모든 DB 연동 기술의 기반
  - 단점: 반복 코드 많음, 예외 처리 및 리소스 관리 번거로움
 
-### 2. JdbcTemplate (2003~ 스프링 초창기)
+#### 2. JdbcTemplate (2003~ 스프링 초창기)
  - 스프링에서 제공하는 JDBC 편의 라이브러리
  - 특징: Connection, PreparedStatement, ResultSet 관리 자동화
  - 장점: 반복 코드 제거, SQL과 결과 매핑에 집중 가능, 예외 통합 처리
  - 단점: 여전히 SQL 직접 작성 필요
 
-### 3. ORM (1990년대 후반 ~ 2000년대 초반 등장, Hibernate가 2001년)
+#### 3. ORM (1990년대 후반 ~ 2000년대 초반 등장, Hibernate가 2001년)
  - Hibernate, EclipseLink 등
  - 특징: 객체(Entity) ↔ DB 테이블 자동 매핑, SQL 자동 생성
  - 장점: 객체 중심 개발, SQL 작성 최소화
  - 단점: 복잡한 SQL이나 성능 최적화 필요 시 자동 SQL이 비효율적
  - JPA(2006) 등장: ORM 구현체 표준화
 
-### 4. SQL 매퍼 (2000년대 초반)
+#### 4. SQL 매퍼 (2000년대 초반)
  - 철학: “SQL은 내가 직접 짤게, 대신 실행과 매핑만 도와줘”
  - 특징: SQL 중심 개발, 매핑 자동화
  - 장점: 성능/제어 안정적, 대규모 서비스에 적합
  - 단점: 객체 중심 개발은 제한적
  
-### 5. Spring Data 계열 (2010년대 이후)
+#### 5. Spring Data 계열 (2010년대 이후)
  - Spring Data JPA 등
  - 특징: JPA/Hibernate 위에 추상화 + 편의 기능 제공
  - 장점: Repository 인터페이스만 정의하면 CRUD 가능, 페이징/정렬 지원, 반복 코드 제거
