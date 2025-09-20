@@ -9,7 +9,7 @@
 | 단순 JDBC     | JdbcTemplate, 순수 JDBC               |
 | Spring Data | Spring Data JPA, Spring Data JDBC 등 |
 
-### 2. Data Access Layer흐름
+### 2. Data Access Layer 변화
 #### 1. JDBC 등장 (1997, Java 1.1)
  - 자바에서 DB와 직접 연결하기 위한 표준 API 등장
  - 특징: SQL 직접 작성, Connection/PreparedStatement/ResultSet 관리 모두 수동
