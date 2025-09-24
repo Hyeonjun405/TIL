@@ -56,12 +56,11 @@
 
 #### 2. 스프링 부트 (Spring Boot)
  ```
- spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/mydb
-    username: root
-    password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+ // application.properties
+ spring.datasource.url=jdbc:mysql://localhost:3306/mydb
+ spring.datasource.username=root
+ spring.datasource.password=1234
+ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
  ```
  ```
     private final DataSource dataSource;
@@ -111,28 +110,3 @@
  - 풀을 사용하지 않는 경우 (DriverManager 등)
    - Connection.close() 호출 → 실제 DB 연결 종료
    - 다음 요청 시 새 연결 생성 필요 → 비용 큼
-
-## 4. Transactional
-### 1. Transactional
- - 스프링에서 제공하는 선언적 트랜잭션 관리 어노테이션
- - 메서드나 클래스에 붙이면 트랜잭션 범위를 정의할 수 있음
- - 핵심 역할: DB 작업을 하나의 트랜잭션 단위로 묶어서 모두 성공하거나 모두 실패하게 관리
-
-### 2. 동작의 흐름
- - 메서드 시작 → 트랜잭션 시작
- - 메서드 정상 종료 → 트랜잭션 커밋
- - 메서드에서 RuntimeException 발생 → 트랜잭션 롤백
- - 체크 예외(Exception)는 기본적으로 롤백하지 않음 (설정 변경 가능)
-
-### 3. 특징
-| 항목          | 내용                            |
-| ----------- | ----------------------------- |
-| 선언적         | 메서드/클래스에 어노테이션만 붙이면 트랜잭션 적용   |
-| AOP 기반      | 프록시를 통해 메서드 실행 전후로 트랜잭션 시작/종료 |
-| 자동 커밋/롤백    | 정상 시 커밋, 예외 발생 시 롤백 (설정 가능)   |
-| propagation | 메서드 간 호출 시 트랜잭션 전파 전략 설정 가능   |
-
-### 4. Propagation (전파) 예시
- - REQUIRED (기본) : 기존 트랜잭션 있으면 참여, 없으면 새로 생성
- - REQUIRES_NEW : 기존 트랜잭션과 상관없이 새 트랜잭션 생성
- - NESTED : 기존 트랜잭션 안에서 중첩 트랜잭션 생성 (savepoint 활용)
